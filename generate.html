@@ -1,0 +1,133 @@
+<html>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<meta http-equiv="content-type" content="text/html;charset=utf-8">
+<meta content="always" name="referrer">
+
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<meta content="width=device-width,minimum-scale=1.0,maximum-scale=1.0,shrink-to-fit=no,user-scalable=no,minimal-ui"
+      name="viewport"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black"/>
+<meta content="telephone=no" name="format-detection"/>
+
+<title>EOS钱包生成工具</title>
+<link rel="stylesheet" href="reset.css"/>
+<style>
+    .hide{display:none;}
+    .container{position:relative;width:100%;max-width:540px;height:100%;margin:0 auto;background-color:#FAFAFA;}
+    .generate-container, .success-container{position: absolute;top:0;right:0;bottom:0;left:0;}
+    .generate-container .generate-button{position: absolute;width:164px;height:164px;top:50%;left:50%;margin-top:-100px;margin-left:-82px;background: url("images/generate-button.png") no-repeat center center;background-size: 100% 100%;}
+    .generate-container .tip{margin-top:187px;text-align: center;color:#323232;font-size:14px;}
+    .generate-container .generate-desc{position: absolute;left:0;right:0;bottom:0;height:80px;text-align: center;}
+    .generate-container .generate-desc img{width:24px;height:24px;}
+    .generate-container .generate-desc p{height:20px;color:#999999;font-size:12px;}
+    .success-container{padding:38px 15px 0 15px;text-align: center;}
+    .success-container img{width:49px;height:49px;}
+    .success-container .success-text{margin-top:10px;color:#323232;font-size:14px;}
+    .success-container .key-container{margin:17px 0 10px 0;height:88px;padding:11px 19px 0 19px;background:white;text-align: left;border-radius: 6px;}
+    .success-container .key-container .title{font-size:16px;color:#323232;}
+    .success-container .key-container .key{margin-top:5px;font-size:14px;word-wrap: break-word; word-break: normal;}
+    .success-container .private-key{background-color:#FFE6E9;}
+    .success-container .private-key .title{color:#FF6D7E;}
+    .success-container .button{height: 44px;line-height:44px; text-align: center;font-size:16px;border-radius: 5px;}
+    .success-container .button.copy{margin:70px 0 10px 0;background-color: #00CD01;color: white;}
+    .success-container .button.generate-again{background-color: #F8F8F8;color: black;border:solid 1px #EBEBEB;}
+    .success-container .tip{margin-top:43px;text-align: left;}
+    .success-container .tip p{color:#999999;font-size:12px;}
+    .success-container .tip p.warning{color:#FF6D7E;}
+    .loading{position: absolute;top:0;right:0;bottom:0;left:0;}
+    .loading p{position: absolute;width:240px;height:30px;line-height: 30px;top:50%;margin-top:-15px;left:50%;margin-left:-120px;text-align: center;color:black;font-size:16px;}
+</style>
+<body>
+<div class="container">
+    <div class="generate-container" id="generate-container">
+        <div class="generate-button" onclick="generateEOSKeyPair();">
+            <p class="tip">点击按钮</p>
+        </div>
+        <div class="generate-desc">
+            <img src="images/github-logo.png"/>
+            <p>Github开源地址: <a href="" target="_blank">https://github.com/meet-one/eos-generate</a></p>
+            <p>*MEET.ONE使用EOS官方开源代码</p>
+        </div>
+    </div>
+
+    <div class="success-container hide" id="success-container">
+        <img src="images/generate-success.png" />
+        <p class="success-text">已生成</p>
+        <div class="key-container public-key">
+            <p class="title">公钥 Public Key</p>
+            <p class="key" id="public-key"></p>
+        </div>
+        <div class="key-container private-key">
+            <p class="title">私钥 Private Key</p>
+            <p class="key" id="private-key"></p>
+        </div>
+
+        <div class="button copy" onclick="copyToClipboardFun();">复制钱包信息</div>
+        <div class="button generate-again" onclick="reGenerate();">再次生成</div>
+        <input class="hide" id="copy-to-clipboard" />
+
+        <div class="tip">
+            <p>请妥善保存您的公钥和私钥。</p>
+            <p>建议抄写或是打印后放置在安全地点。</p>
+            <p class="warning">不建议使用网络传输私钥，例如用微信发送到电脑。</p>
+        </div>
+    </div>
+    <div class="loading hide" id="loading">
+        <p>正在生成,请稍候。</p>
+    </div>
+</div>
+</body>
+<script src=js/ecc.js></script>
+<script>
+    'use strict';
+
+    var loading = document.getElementById('loading');
+    var publicKey = document.getElementById('public-key');
+    var privatekey = document.getElementById('private-key');
+    var entireInfo ='';
+
+    function generateEOSKeyPair() {
+
+        document.getElementById('generate-container').classList.add('hide');
+        document.getElementById('success-container').classList.add('hide');
+        loading.classList.remove('hide');
+
+        setTimeout(function () {
+            var _eos_ecc = eos_ecc,
+                    PrivateKey = _eos_ecc.PrivateKey;
+
+            var d = PrivateKey.randomKey();
+            var privkey = d.toWif();
+            var pubkey = d.toPublic().toString();
+
+            publicKey.innerText = pubkey;
+            privatekey.innerText = privkey;
+            entireInfo = '公钥 Public Key: ' + pubkey + '   私钥 Private Key: ' + privkey;
+            loading.classList.add('hide');
+            document.getElementById('success-container').classList.remove('hide');
+        }, 100);
+    }
+
+    function reGenerate() {
+        publicKey.innerText = '';
+        privatekey.innerText = '';
+
+        generateEOSKeyPair();
+    }
+
+    function copyToClipboardFun(){
+        var aux = document.createElement("input");
+
+        aux.setAttribute("value", entireInfo);
+
+        document.body.appendChild(aux);
+
+        aux.select();
+
+        document.execCommand("copy");
+
+        document.body.removeChild(aux);
+    }
+</script>
+</html>
